@@ -1,2 +1,0 @@
-# SO
-Prácticas sistemas operativos
