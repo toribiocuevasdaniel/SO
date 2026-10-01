@@ -2,79 +2,55 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 pid_t pidPadreOriginal;
 
-void manejador_padre(int sig) {
-    
-}
+void configurar_senyales();
+void manejador_padre(int sig);
+void crearHorizontal(int x, int y);
 
-
-void manejador_alarma(int sig) {
-
-    kill(pidPadreOriginal, SIGUSR1);
-}
-
-void crearMalla(int x, int y) {
-    for (int col = 0; col < y; col++) {
-        pid_t pid = fork();
-
-        if (pid == 0) { //hijo
-        
-            int fila = 0; 
-
-            
-            for (int f = 1; f < x; f++) {
-                pid_t pid_cadena = fork();
-                if (pid_cadena > 0) {
-                    break; 
-                }
-                fila = f; 
-            }
-
-            
-            if (col == (y - 1) && fila == (x - 1)) {
-                
-                signal(SIGALRM, manejador_alarma);
-                alarm(1); 
-                pause();        
-                pause();
-            } else {
-                
-                pause();
-            }
-
-            
-            wait(NULL);
-            exit(0);
-        }
-    }
-}
-void parse(){
+void parse(int argc, char *argv[]) {
     if (argc != 3) {
-        fprintf(stderr, "Uso: %s <filas (x)> <columnas (y)>", argv[0]);
-        return 1;
+        fprintf(stderr, "Uso: %s <filas (x)> <columnas (y)>\n", argv[0]);
+        exit(1);
+    }
+    else if (atoi(argv[1]) <= 0 || atoi(argv[2]) <= 0) {
+        fprintf(stderr, "Introduzca números positivos para filas y columnas\n");
+        exit(1);
     }
 }
+
+void llamadaPstree(pid_t pidpadreOriginal) {
+    char pid_str[16];
+    sprintf(pid_str, "%d", pidpadreOriginal);
+    execlp("pstree", "pstree", "-c", pid_str, NULL);
+    perror("Error en execlp");
+    exit(1);
+}
+
 int main(int argc, char *argv[]) {
     parse(argc, argv);
     int filas = atoi(argv[1]);
     int columnas = atoi(argv[2]);
     pidPadreOriginal = getpid();
 
-    
-    signal(SIGUSR1, manejador_padre);
+    configurar_senyales();
 
     
-    crearMalla(filas, columnas);
+    crearHorizontal(filas, columnas);
 
     
     pause();
 
     
-    system("pstree -c $(pgrep -o malla)");
+    pid_t pid_pstree = fork();
+    if (pid_pstree == 0) {
+        llamadaPstree(pidPadreOriginal);
+    } 
+    wait(NULL); //Espera a que termine su único hijo directo, pstree
 
-    
+    // Liberar a todos los hijos
     kill(0, SIGUSR1);
 
     for (int i = 0; i < columnas; i++) {
