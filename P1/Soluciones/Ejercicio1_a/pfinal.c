@@ -5,14 +5,14 @@
 
 extern pid_t pidPadreOriginal;
 
-void manejador_padre(int sig) {// Función vacía para despertar al super padre sin matarlo
-    
+// Función vacía para despertar los procesos tras pause() sin matarlos
+void despertar(int sig) {
 }
-
 
 void manejador_alarma(int sig) {
     kill(pidPadreOriginal, SIGUSR1);
 }
-void configurar_senyales(){
-    signal(SIGUSR1, manejador_padre);
+
+void configurar_senyales(void) {
+    signal(SIGUSR1, despertar);
 }

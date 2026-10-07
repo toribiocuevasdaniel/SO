@@ -6,9 +6,9 @@
 
 pid_t pidPadreOriginal;
 
-void configurar_senyales();
-void manejador_padre(int sig);
-void crearHorizontal(int x, int y);
+void configurar_senyales(void);
+void despertar(int sig);
+void crearHorizontal(int x, int y, pid_t pids[]);
 
 void parse(int argc, char *argv[]) {
     if (argc != 3) {
@@ -22,11 +22,13 @@ void parse(int argc, char *argv[]) {
 }
 
 void llamadaPstree(pid_t pidpadreOriginal) {
-    char pid_str[16];
-    sprintf(pid_str, "%d", pidpadreOriginal);
-    execlp("pstree", "pstree", "-c", pid_str, NULL);
-    perror("Error en execlp");
-    exit(1);
+    if (fork() == 0) {
+        char pid_str[16];
+        sprintf(pid_str, "%d", pidpadreOriginal);
+        execlp("pstree", "pstree", "-c", pid_str, NULL);
+        perror("Error en execlp");
+        exit(1);
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -35,23 +37,22 @@ int main(int argc, char *argv[]) {
     int columnas = atoi(argv[2]);
     pidPadreOriginal = getpid();
 
+
     configurar_senyales();
 
-    
-    crearHorizontal(filas, columnas);
+    pid_t pids[columnas];
+    crearHorizontal(filas, columnas, pids);
 
-    
+    // Espera la llegada de la señal del último hijo (esquina inferior derecha)
     pause();
 
-    
-    pid_t pid_pstree = fork();
-    if (pid_pstree == 0) {
-        llamadaPstree(pidPadreOriginal);
-    } 
-    wait(NULL); //Espera a que termine su único hijo directo, pstree
+    // Muestra el árbol de procesos
+    llamadaPstree(pidPadreOriginal);
+    wait(NULL); // Espera a que finalice pstree
 
-    // Liberar a todos los hijos
-    kill(0, SIGUSR1);
+    for (int i = 0; i < columnas; i++) {
+        kill(pids[i], SIGUSR1);
+    }
 
     for (int i = 0; i < columnas; i++) {
         wait(NULL);

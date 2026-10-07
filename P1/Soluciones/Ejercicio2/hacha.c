@@ -6,16 +6,15 @@
 #include <sys/wait.h>
 #include <string.h>
 
-// --- PASO 1: Validar argumentos de línea de comandos ---
+// Validar argumentos de línea de comandos 
 void parse(int argc, char *argv[]) {
     if (argc != 3) {
-        char *msg = "Uso: hacha <archivo> <tamaño>\n";
-        write(2, msg, strlen(msg));
+        printf("Uso: hacha <archivo> <tamaño>\n");
         exit(1);
     }
 }
 
-// --- PASO 2: Obtener el tamaño del archivo con stat() ---
+// Obtener el tamaño del archivo con stat() 
 int obtener_tamanyo_archivo(const char *nombre_archivo) {
     struct stat info_archivo;
     if (stat(nombre_archivo, &info_archivo) < 0) {
@@ -25,7 +24,7 @@ int obtener_tamanyo_archivo(const char *nombre_archivo) {
     return info_archivo.st_size;
 }
 
-// --- PASO 3: Abrir el archivo original ---
+// Abrir el archivo original 
 int abrir_archivo_origen(const char *nombre_archivo) {
     int fd_in = open(nombre_archivo, O_RDONLY);
     if (fd_in < 0) {
@@ -35,7 +34,7 @@ int abrir_archivo_origen(const char *nombre_archivo) {
     return fd_in;
 }
 
-// --- PASO 4: Calcular número de fragmentos necesarios ---
+//Calcular número de fragmentos necesarios 
 int calcular_num_trozos(int tamanyo_total, int tamanyo_trozo) {
     int num_trozos = tamanyo_total / tamanyo_trozo;
     if (tamanyo_total % tamanyo_trozo != 0) {
@@ -44,41 +43,41 @@ int calcular_num_trozos(int tamanyo_total, int tamanyo_trozo) {
     return num_trozos;
 }
 
-// --- LÓGICA DEL PROCESO HIJO ---
+//  Lógica del proceso hijo
 void ejecutar_hijo(int fd_pipe_read, const char *nombre_archivo, int num_trozo) {
     // 1. Formatear el nombre del fragmento (.h00, .h01...)
     char nombre_destino[256];
     sprintf(nombre_destino, "%s.h%02d", nombre_archivo, num_trozo);
 
-    // 2. Crear archivo de salida
+    // Crear archivo de salida
     int fd_out = creat(nombre_destino, 0666);
     if (fd_out < 0) {
         perror("Error en creat");
         exit(1);
     }
 
-    // 3. Leer de la tubería y escribir en el archivo destino
+    // Leer de la tubería y escribir en el archivo destino
     char buffer[1024];
     int leidos;
     while ((leidos = read(fd_pipe_read, buffer, sizeof(buffer))) > 0) {
         write(fd_out, buffer, leidos);
     }
 
-    // 4. Cerrar descriptores y finalizar proceso
+    // Cerrar descriptores y finalizar proceso
     close(fd_out);
     close(fd_pipe_read);
     exit(0);
 }
 
-// --- LÓGICA DEL PROCESO PADRE POR CADA FRAGMENTO ---
+// Lógica del proceso padre
 void ejecutar_padre(int fd_pipe_write, int fd_in, int num_trozo, int num_trozos, int tamanyo_trozo, int tamanyo_total) {
-    // 1. Calcular cuántos bytes enviar en este trozo en concreto
+    // Calcular cuántos bytes enviar en este trozo en concreto
     int bytes_a_enviar = tamanyo_trozo;
     if (num_trozo == num_trozos - 1 && (tamanyo_total % tamanyo_trozo) != 0) {
         bytes_a_enviar = tamanyo_total % tamanyo_trozo;
     }
 
-    // 2. Leer del archivo origen y volcar en la tubería
+    // Leer del archivo origen y volcar en la tubería
     char buffer[1024];
     int bytes_enviados = 0;
 
@@ -97,7 +96,7 @@ void ejecutar_padre(int fd_pipe_write, int fd_in, int num_trozo, int num_trozos,
         }
     }
 
-    // 3. Cerrar tubería para enviar EOF al hijo
+    // Cerrar tubería para enviar EOF al hijo
     close(fd_pipe_write);
 }
 
@@ -128,7 +127,7 @@ void crear_fragmentos_concurrentes(int fd_in, const char *nombre_archivo, int nu
     }
 }
 
-// --- PASO 6: Recoger todos los procesos hijos ---
+// Recoger todos los procesos hijos ---
 void esperar_hijos(int num_hijos) {
     for (int i = 0; i < num_hijos; i++) {
         wait(NULL);
@@ -137,22 +136,22 @@ void esperar_hijos(int num_hijos) {
 
 
 int main(int argc, char *argv[]) {
-    // 1. Validar argumentos
+    // Validar argumentos
     parse(argc, argv);
 
-    // 2. Obtener parámetros de entrada
+    // Obtener parámetros de entrada
     char *nombre_archivo = argv[1];
     int tamanyo_trozo = atoi(argv[2]);
 
-    // 3. Preparar recursos del archivo
+    // Preparar recursos del archivo
     int tamanyo_total = obtener_tamanyo_archivo(nombre_archivo);
     int fd_in = abrir_archivo_origen(nombre_archivo);
     int num_trozos = calcular_num_trozos(tamanyo_total, tamanyo_trozo);
 
-    // 4. Crear los fragmentos concurrentemente con procesos e IPC
+    // Crear los fragmentos concurrentemente con procesos e IPC
     crear_fragmentos_concurrentes(fd_in, nombre_archivo, num_trozos, tamanyo_trozo, tamanyo_total);
 
-    // 5. Limpieza y sincronización final
+    // Limpieza y sincronización final
     close(fd_in);
     esperar_hijos(num_trozos);
 
