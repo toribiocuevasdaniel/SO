@@ -45,7 +45,7 @@ int calcular_num_trozos(int tamanyo_total, int tamanyo_trozo) {
 
 //  Lógica del proceso hijo
 void ejecutar_hijo(int fd_pipe_read, const char *nombre_archivo, int num_trozo) {
-    // 1. Formatear el nombre del fragmento (.h00, .h01...)
+    // Formatear el nombre del fragmento (.h00, .h01...)
     char nombre_destino[256];
     sprintf(nombre_destino, "%s.h%02d", nombre_archivo, num_trozo);
 
@@ -78,9 +78,10 @@ void ejecutar_padre(int fd_pipe_write, int fd_in, int num_trozo, int num_trozos,
     }
 
     // Leer del archivo origen y volcar en la tubería
-    char buffer[1024];
+    char buffer[1024]; //Tamaño de bytes que envian como máximo por la tubería
     int bytes_enviados = 0;
 
+    // Escritura en el pipe
     while (bytes_enviados < bytes_a_enviar) {
         int a_leer = sizeof(buffer);
         if (bytes_a_enviar - bytes_enviados < sizeof(buffer)) {
@@ -100,7 +101,7 @@ void ejecutar_padre(int fd_pipe_write, int fd_in, int num_trozo, int num_trozos,
     close(fd_pipe_write);
 }
 
-// --- PASO 5: Bucle concurrente de creación de procesos y tuberías ---
+// Bucle concurrente de creación de procesos y tuberías 
 void crear_fragmentos_concurrentes(int fd_in, const char *nombre_archivo, int num_trozos, int tamanyo_trozo, int tamanyo_total) {
     for (int i = 0; i < num_trozos; i++) {
         int fd_pipe[2];

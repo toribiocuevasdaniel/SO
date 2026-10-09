@@ -8,7 +8,7 @@
 #include <sys/types.h>
 
 pid_t pidSuperPadre;
-
+// Estructura de datos de la memoria compartida
 typedef struct {
     int x;
     int y;
@@ -18,6 +18,8 @@ typedef struct {
 
 int shmid;
 MemoriaCompartida *mem = NULL;
+
+// Comprobación de argumentos
 
 void parse(int argc, char *argv[]) {
     if (argc != 3) {
@@ -29,16 +31,16 @@ void parse(int argc, char *argv[]) {
         exit(1);
     }
 }
-
+// Función vacía usada para despertar a los procesos de pause()
 void despertar(int sig){}
-
+// Función que configura todas las señales necesarias para los procesos
 void configurarSenyales(){
     signal(SIGALRM, despertar);
     signal(SIGUSR1, despertar);
 }
 
 
-
+//Lógica de creación de los subhijos
 void crearHorizontal(int y, pid_t pids_Y[]){
     int col = -1; // -1 indica que es el PADRE que crea la fila
 
@@ -81,7 +83,7 @@ void crearHorizontal(int y, pid_t pids_Y[]){
     // El PADRE no entra al 'if', simplemente termina la función 
     // y mantiene 'pids_Y' lleno con los PIDs de sus hijos.
 }
-
+// Logica de creación de la cadena de hijos verticales
 void crearVertical(int x, int y) {
     pid_t pids_Y[y];
     pid_t ultimo_hijo = 0;
@@ -124,7 +126,7 @@ void crearVertical(int x, int y) {
         exit(0);
     }
 }
-
+// Función de flujo principal del programa
 int main(int argc, char *argv[]){
     parse(argc, argv);
     configurarSenyales();
@@ -133,13 +135,14 @@ int main(int argc, char *argv[]){
     int x = atoi(argv[1]);
     int y = atoi(argv[2]);
 
-
+    //Declaramos la memoria compartida
     shmid = shmget(IPC_PRIVATE, sizeof(MemoriaCompartida), IPC_CREAT | 0666);
     if (shmid == -1) {
         perror("Error al crear la memoria compartida");
         exit(1);
     }
     mem = (MemoriaCompartida *)shmat(shmid, NULL, 0);
+    // Asignación de argumentos a sus equivalentes en la memoria compartida
     mem->x = x;
     mem->y = y;
     mem->padres[0] = pidSuperPadre; 
@@ -159,6 +162,7 @@ int main(int argc, char *argv[]){
 
 
     printf("Soy el superpadre (%d): mis hijos finales son:", getpid());
+    // Imprimimos los pid de todos los subhijos de la parte horizontal final accediendo a memoria compartida
     for (int j = 0; j < y; j++) {
         if (j == y - 1) {
             printf(" %d", mem->subhijos[j]);
@@ -172,7 +176,7 @@ int main(int argc, char *argv[]){
     kill(pid, SIGUSR1); // Despierta a la cadena en cascada
     wait(NULL);
 
-
+    // Liberamos recursos del segmento de memoria compartida
     shmdt(mem);
     shmctl(shmid, IPC_RMID, NULL);
 
