@@ -1,7 +1,3 @@
-// A.c - Ejercicio 1b: código del proceso A (hijo de ejec, padre de B).
-// Cuando Z envía SIGALRM (tras los segundos indicados), A muestra el árbol
-// con pstree, avisa al superpadre ejec y, a la señal de este, ordena la
-// terminación de B y espera a que el subárbol muera antes de morir él.
 
 #include <stdio.h>
 #include <stdlib.h>

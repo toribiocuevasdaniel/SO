@@ -1,8 +1,3 @@
-// B.c - Ejercicio 1b: código del proceso B (hijo de A, padre de X, Y y Z).
-// Crea sus tres hijos en un único bucle (reutilizado con un switch para
-// llamar a la rutina correspondiente de cada uno) y espera bloqueado hasta
-// que A le ordene la terminación; entonces señala a los tres y recoge a
-// cada uno antes de morir.
 
 #include <stdio.h>
 #include <stdlib.h>

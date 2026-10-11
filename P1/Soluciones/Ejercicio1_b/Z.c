@@ -1,7 +1,3 @@
-// Z.c - Ejercicio 1b: código del proceso Z (hijo de B).
-// Es el desencadenante del final del programa: tras los segundos indicados
-// por el argumento de ejec (mediante alarm(), sin usar sleep) envía SIGUSR1
-// a A para que muestre pstree. Después espera la orden de terminación de B.
 
 #include <stdio.h>
 #include <stdlib.h>

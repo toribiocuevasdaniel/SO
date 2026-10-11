@@ -1,6 +1,3 @@
-// Y.c - Ejercicio 1b: código del proceso Y (hijo de B).
-// Proceso hoja: solo se identifica, espera la orden de terminación de B
-// y muere.
 
 #include <stdio.h>
 #include <stdlib.h>
