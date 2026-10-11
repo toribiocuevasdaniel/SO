@@ -12,6 +12,10 @@ void parse(int argc, char *argv[]) {
         printf("Uso: hacha <archivo> <tamaño>\n");
         exit(1);
     }
+    if(atoi(argv[2])<= 0){
+        fprintf(stderr, "El tamaño del fragmento debe ser positivo \n");
+        exit(1);
+    }
 }
 
 // Obtener el tamaño del archivo con stat() 
@@ -60,7 +64,10 @@ void ejecutar_hijo(int fd_pipe_read, const char *nombre_archivo, int num_trozo) 
     char buffer[1024];
     int leidos;
     while ((leidos = read(fd_pipe_read, buffer, sizeof(buffer))) > 0) {
-        write(fd_out, buffer, leidos);
+        if (write(fd_out, buffer, leidos) != leidos) {
+            perror("Error al escribir en el archivo fragmento");
+            exit(1);
+        }
     }
 
     // Cerrar descriptores y finalizar proceso
@@ -90,7 +97,10 @@ void ejecutar_padre(int fd_pipe_write, int fd_in, int num_trozo, int num_trozos,
 
         int leidos = read(fd_in, buffer, a_leer);
         if (leidos > 0) {
-            write(fd_pipe_write, buffer, leidos);
+            if (write(fd_pipe_write, buffer, leidos) != leidos) {
+                perror("Error al escribir en la tuberia (pipe)");
+                exit(1);
+            }
             bytes_enviados += leidos;
         } else {
             break;

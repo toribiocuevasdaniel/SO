@@ -1,6 +1,3 @@
-// horizontal.c - Ejercicio 1a: creación de la primera fila de la malla.
-// Cada hijo creado aquí actúa como "cabeza de columna" y a su vez crea
-// la cadena vertical correspondiente (ver vertical.c).
 
 #include <stdio.h>
 #include <stdlib.h>

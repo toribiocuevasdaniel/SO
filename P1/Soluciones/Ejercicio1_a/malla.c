@@ -1,16 +1,4 @@
-// malla.c - Ejercicio 1a: crea una malla de procesos de x filas por y columnas
-// y muestra el árbol resultante con pstree -c.
-// Composición del programa: malla.c + horizontal.c + vertical.c + pfinal.c
-//
-// Estructura del árbol generado:
-//   malla (superpadre)
-//     -> p11, p12, ... p1y   (primera fila, creados por crearHorizontal)
-//        -> p21, ... p2y     (cadena vertical de cada columna)
-//           -> ...
-//              -> px1, ... pxy (última fila)
-// El proceso en la esquina inferior derecha (pxy) avisa al superpadre con
-// SIGALRM/SIGUSR1, que entonces muestra pstree y desencadena la destrucción
-// ordenada del árbol propagando SIGUSR1 hacia abajo.
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +15,7 @@ void despertar(int sig);
 void crearHorizontal(int x, int y, pid_t pids[]);
 
 // Valida los argumentos de línea de comandos: necesita exactamente
-// dos argumentos positivos (filas x y columnas y)
+// dos argumentos positivos y enteros (filas x y columnas y)
 void parse(int argc, char *argv[]) {
     if (argc != 3) {
         fprintf(stderr, "Uso: %s <filas (x)> <columnas (y)>\n", argv[0]);

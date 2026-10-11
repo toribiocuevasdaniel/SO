@@ -1,5 +1,3 @@
-// pfinal.c - Ejercicio 1a: manejadores de señales compartidos por todo el
-// programa de la malla (se enlazan junto a malla.c, horizontal.c y vertical.c).
 
 #include <stdio.h>
 #include <stdlib.h>

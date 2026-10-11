@@ -1,9 +1,3 @@
-// ejec.c - Ejercicio 1b: proceso raíz (superpadre) del árbol
-//   ejec -> A -> B -> (X, Y, Z)
-// Recibe un único argumento: los segundos que Z debe esperar con alarm()
-// antes de desencadenar la cadena de señales que muestra pstree y destruye
-// el árbol en orden (los padres no mueren antes que sus hijos).
-// Composición del programa: ejec.c + A.c + B.c + X.c + Y.c + Z.c
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,9 +22,10 @@ void parse(int argc, char *argv[]) {
         exit(1);
     }
     else if (atoi(argv[1]) <= 0) {
-        fprintf(stderr, "Introduzca solo números enteros y positivos \n");
+        fprintf(stderr, "Introduzca solo números positivos \n");
         exit(1);
     }
+   
 }
 
 

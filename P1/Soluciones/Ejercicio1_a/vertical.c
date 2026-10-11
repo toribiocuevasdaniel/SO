@@ -1,7 +1,3 @@
-// vertical.c - Ejercicio 1a: creación de las columnas de la malla.
-// Cada "cabeza de columna" (creada en horizontal.c) genera una cadena
-// vertical de x-1 fork() encadenados: cada proceso solo conoce a su hijo
-// directo, con lo que la estructura resultante es una malla x * y.
 
 #include <stdio.h>
 #include <stdlib.h>
