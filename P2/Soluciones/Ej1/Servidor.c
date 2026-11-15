@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -176,6 +177,7 @@ void bucle_principal(int conector)
 int main()
 {
     fprintf(stderr, "[Servidor] Iniciando servidor...\n");
+    signal(SIGCHLD,SIG_IGN);
     int conector = crear_socket_o_salir();
     preparar_servidor(conector);
     printf("Servidor escuchando en el puerto %d...\n", PUERTO);

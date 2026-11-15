@@ -1,0 +1,141 @@
+// Productor-Consumidor con buffer limitado e interaccion visual (1P - 1C)
+#include "gdefs.cm"
+
+const int N = 4;          // tamano del buffer
+const int ITEMS = 8;      // total de items a producir y consumir
+
+int buffer[N];
+int entrada;              // siguiente posicion donde escribir
+int salida;               // siguiente posicion de donde leer
+int cuenta;               // items actualmente en el buffer
+
+semaphore vacios;
+semaphore llenos;
+binarysem mutex;
+
+// mueve la bolita del productor al hueco y lo pinta verde
+void animarColocacionProductor()
+{
+    int destX;
+    destX = 75 + entrada * 70;
+    moveto(11, destX, 115);
+    changecolor(entrada + 1, GREEN);
+    moveto(11, 180, 30);
+}
+
+// mueve la bolita del consumidor al hueco y lo pinta rojo
+void animarExtraccionConsumidor()
+{
+    int destX;
+    destX = 75 + salida * 70;
+    moveto(21, destX, 115);
+    changecolor(salida + 1, RED);
+    moveto(21, 180, 200);
+}
+
+// guarda el item en el buffer y avanza el indice de entrada
+void almacenarItem(int item)
+{
+    buffer[entrada] = item;
+    animarColocacionProductor();
+    entrada = (entrada + 1) % N;
+    cuenta = cuenta + 1;
+}
+
+// saca el item del buffer y avanza el indice de salida
+int extraerItem()
+{
+    int item;
+    item = buffer[salida];
+    animarExtraccionConsumidor();
+    salida = (salida + 1) % N;
+    cuenta = cuenta - 1;
+    return item;
+}
+
+// produce un item: espera hueco, entra en SC, guarda y avisa
+void producirUnItem(int I)
+{
+    int item;
+    item = 100 + I;
+    wait(vacios);
+    wait(mutex);
+    almacenarItem(item);
+    cout << "Productor produce " << item << "  (en buffer: " << cuenta << ")" << endl;
+    signal(mutex);
+    signal(llenos);
+}
+
+// consume un item: espera item, entra en SC, saca y avisa
+void consumirUnItem(int I)
+{
+    int item;
+    wait(llenos);
+    wait(mutex);
+    item = extraerItem();
+    cout << "    Consumidor consume " << item << "  (en buffer: " << cuenta << ")" << endl;
+    signal(mutex);
+    signal(vacios);
+}
+
+// bucle del productor
+void productor()
+{
+    int I;
+    for (I = 1; I <= ITEMS; I++)
+    {
+        cout << "[Productor] Preparando item " << I << " (esperando hueco)..." << endl;
+        producirUnItem(I);
+    }
+}
+
+// bucle del consumidor
+void consumidor()
+{
+    int I;
+    for (I = 1; I <= ITEMS; I++)
+    {
+        cout << "[Consumidor] Preparando consumo " << I << " (esperando item)..." << endl;
+        consumirUnItem(I);
+    }
+}
+
+// deja indices y semaforos en estado inicial
+void inicializarEstado()
+{
+    entrada = 0;
+    salida = 0;
+    cuenta = 0;
+    initialsem(vacios, N);
+    initialsem(llenos, 0);
+    initialsem(mutex, 1);
+}
+
+// pinta los 4 huecos y las dos bolitas 
+void dibujarEscena()
+{
+    int k;
+    for (k = 0; k < N; k++)
+    {
+        create(k + 1, RECTANGLE, RED, 60 + k * 70, 100, 50, 50);
+    }
+    create(11, CIRCLE, BLUE, 180, 30, 20, 20);
+    create(21, CIRCLE, YELLOW, 180, 200, 20, 20);
+}
+
+// main
+int main()
+{
+    cout << "[Main] Inicializando indices y semaforos..." << endl;
+    inicializarEstado();
+    cout << "[Main] Dibujando escena..." << endl;
+    dibujarEscena();
+    cout << "[Main] Lanzando productor y consumidor..." << endl;
+    cobegin
+    {
+        productor();
+        consumidor();
+    }
+    cout << "Fin: todos los items producidos y consumidos." << endl;
+    return 0;
+}
